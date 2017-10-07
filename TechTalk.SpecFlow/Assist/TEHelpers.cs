@@ -29,7 +29,7 @@ namespace TechTalk.SpecFlow.Assist
             {
                 var parameterName = constructorParameters[parameterIndex].Name;
                 var member = (from m in membersThatNeedToBeSet
-                                where m.MemberName == parameterName
+                                where string.Equals(m.MemberName, parameterName, StringComparison.OrdinalIgnoreCase)
                                 select m).FirstOrDefault();
                 if (member != null)
                     parameterValues[parameterIndex] = member.GetValue();
@@ -104,9 +104,32 @@ namespace TechTalk.SpecFlow.Assist
                 select new MemberHandler { Type = type, Row = row, MemberName = field.Name, PropertyType = field.FieldType, Setter = (i, v) => field.SetValue(i, v) };
 
             var memberHandlers = new List<MemberHandler>();
-
+            
             memberHandlers.AddRange(properties);
             memberHandlers.AddRange(fields);
+            
+            // tuple special case
+            var fieldInfos = type.GetFields();
+            if (IsValueTupleType(type) && fieldInfos.Length == table.Header.Count)
+            {
+                for (var index = 0; index < fieldInfos.Length; index++)
+                {
+                    var field = fieldInfos[index];
+                    var row = table.Rows[index];
+
+                    if (TheseTypesMatch(type, field.FieldType, row))
+                    {
+                        memberHandlers.Add(new MemberHandler
+                        {
+                            Type = type,
+                            Row = row,
+                            MemberName = field.Name,
+                            PropertyType = field.FieldType,
+                            Setter = (i, v) => field.SetValue(i, v)
+                        });
+                    }
+                }
+            }
 
             return memberHandlers;
         }
@@ -160,6 +183,45 @@ namespace TechTalk.SpecFlow.Assist
             var firstRowValue = table.Rows[0][table.Header.First()];
             return type.GetProperties()
                 .Any(property => IsMemberMatchingToColumnName(property, firstRowValue));
+        }
+
+        public static bool IsValueTupleType(Type type, bool checkBaseTypes = false)
+        {
+            if (type == null)
+                throw new ArgumentNullException(nameof(type));
+
+            if (type == typeof(Tuple))
+                return true;
+
+            while (type != null)
+            {
+                if (type.IsGenericType)
+                {
+                    var genType = type.GetGenericTypeDefinition();
+                    if 
+                    (
+                        genType == typeof(ValueTuple)
+                        || genType == typeof(ValueTuple<>)
+                        || genType == typeof(ValueTuple<,>)
+                        || genType == typeof(ValueTuple<,,>)
+                        || genType == typeof(ValueTuple<,,,>)
+                        || genType == typeof(ValueTuple<,,,,>)
+                        || genType == typeof(ValueTuple<,,,,,>)
+                        || genType == typeof(ValueTuple<,,,,,,>)
+                        || genType == typeof(ValueTuple<,,,,,,,>)
+                        || genType == typeof(ValueTuple<,,,,,,,>)
+                        || genType == typeof(ValueTuple<,,,,,,,>)
+                    )
+                        return true;
+                }
+
+                if (!checkBaseTypes)
+                    break;
+
+                type = type.BaseType;
+            }
+
+            return false;
         }
     }
 }

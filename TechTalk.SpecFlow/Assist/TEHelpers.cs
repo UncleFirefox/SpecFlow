@@ -110,9 +110,9 @@ namespace TechTalk.SpecFlow.Assist
 
             // tuple special case
             var fieldInfos = type.GetFields();
-            if (IsValueTupleType(type) && fieldInfos.Length == table.Header.Count)
+            if (IsValueTupleType(type) && fieldInfos.Length == table.RowCount)
             {
-                for (var index = 0; index < fieldInfos.Length; index++)
+                for (var index = 0; index < table.Rows.Count; index++)
                 {
                     var field = fieldInfos[index];
                     var row = table.Rows[index];

@@ -344,6 +344,21 @@ namespace TechTalk.SpecFlow.RuntimeTests.AssistTests
             test.three.Should().Be(999);
         }
 
+        [Test]
+        public void Works_with_tuples_vertical_format()
+        {
+            var table = new Table("Field", "Value");
+            table.AddRow("One", "hello");
+            table.AddRow("Two", "world");
+            table.AddRow("Three", "999");
+
+            var test = table.CreateInstance<(string one, string two, int three)>();
+
+            test.one.Should().Be("hello");
+            test.two.Should().Be("world");
+            test.three.Should().Be(999);
+        }
+
         private class Prop
         {
             public string Prop1 { get; set; }

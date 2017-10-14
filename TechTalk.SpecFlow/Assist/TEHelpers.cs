@@ -209,8 +209,6 @@ namespace TechTalk.SpecFlow.Assist
                         || genType == typeof(ValueTuple<,,,,,>)
                         || genType == typeof(ValueTuple<,,,,,,>)
                         || genType == typeof(ValueTuple<,,,,,,,>)
-                        || genType == typeof(ValueTuple<,,,,,,,>)
-                        || genType == typeof(ValueTuple<,,,,,,,>)
                     )
                         return true;
                 }
